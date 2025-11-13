@@ -12,6 +12,7 @@
                             Add Customer
                         </button>
                     </div>
+                    
                     <div class="card-body">
                         <!-- Search -->
                         <div class="row mb-4">
@@ -107,7 +108,7 @@
         // Initialize the customers page
         document.addEventListener('DOMContentLoaded', function() {
             loadCustomers();
-            
+
             // Event listeners
             addCustomerBtn.addEventListener('click', openAddCustomerModal);
             customerForm.addEventListener('submit', saveCustomer);
@@ -117,7 +118,7 @@
         // Load customers function
         function loadCustomers() {
             customersList.innerHTML = '';
-            
+
             customers.forEach(customer => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -167,12 +168,12 @@
         // Save customer (add or update)
         function saveCustomer(e) {
             e.preventDefault();
-            
+
             const id = customerId.value ? parseInt(customerId.value) : null;
             const name = customerName.value;
             const phone = customerPhone.value;
             const email = customerEmail.value;
-            
+
             if (id) {
                 // Update existing customer
                 const index = customers.findIndex(c => c.id === id);
@@ -184,7 +185,7 @@
                 const newId = customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1;
                 customers.push({ id: newId, name, phone, email });
             }
-            
+
             loadCustomers();
             customerModal.hide();
         }
@@ -192,14 +193,14 @@
         // Filter customers based on search
         function filterCustomers() {
             const searchTerm = searchInput.value.toLowerCase();
-            const filteredCustomers = customers.filter(customer => 
-                customer.name.toLowerCase().includes(searchTerm) || 
+            const filteredCustomers = customers.filter(customer =>
+                customer.name.toLowerCase().includes(searchTerm) ||
                 customer.phone.toLowerCase().includes(searchTerm) ||
                 customer.email.toLowerCase().includes(searchTerm)
             );
-            
+
             customersList.innerHTML = '';
-            
+
             if (filteredCustomers.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `<td colspan="4" class="text-center">No customers found</td>`;
