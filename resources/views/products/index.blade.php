@@ -12,6 +12,7 @@
                             Add Product
                         </button>
                     </div>
+                    
                     <div class="card-body">
                         <!-- Search and Filter -->
                         <div class="row mb-4">
@@ -129,7 +130,7 @@
         // Initialize the products page
         document.addEventListener('DOMContentLoaded', function() {
             loadProducts();
-            
+
             // Event listeners
             addProductBtn.addEventListener('click', openAddProductModal);
             productForm.addEventListener('submit', saveProduct);
@@ -139,7 +140,7 @@
         // Load products function
         function loadProducts() {
             productsList.innerHTML = '';
-            
+
             products.forEach(product => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -197,13 +198,13 @@
         // Save product (add or update)
         function saveProduct(e) {
             e.preventDefault();
-            
+
             const id = productId.value ? parseInt(productId.value) : null;
             const name = productName.value;
             const code = productCode.value;
             const price = parseFloat(productPrice.value);
             const stock = parseInt(productStock.value);
-            
+
             if (id) {
                 // Update existing product
                 const index = products.findIndex(p => p.id === id);
@@ -215,7 +216,7 @@
                 const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
                 products.push({ id: newId, name, code, price, stock });
             }
-            
+
             loadProducts();
             productModal.hide();
         }
@@ -223,13 +224,13 @@
         // Filter products based on search
         function filterProducts() {
             const searchTerm = searchInput.value.toLowerCase();
-            const filteredProducts = products.filter(product => 
-                product.name.toLowerCase().includes(searchTerm) || 
+            const filteredProducts = products.filter(product =>
+                product.name.toLowerCase().includes(searchTerm) ||
                 product.code.toLowerCase().includes(searchTerm)
             );
-            
+
             productsList.innerHTML = '';
-            
+
             if (filteredProducts.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `<td colspan="6" class="text-center">No products found</td>`;
