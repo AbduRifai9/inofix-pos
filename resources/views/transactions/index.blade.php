@@ -12,6 +12,7 @@
                             New Transaction
                         </a>
                     </div>
+                    
                     <div class="card-body">
                         <!-- Filters -->
                         <div class="row mb-4">
@@ -132,55 +133,55 @@
     <script>
         // Sample transactions data - in real app, this would come from API
         const transactions = [
-            { 
-                id: 1, 
-                invoice: 'INV202511130001', 
-                customer: 'John Doe', 
-                date: '2025-11-13', 
-                subtotal: 13000000, 
+            {
+                id: 1,
+                invoice: 'INV202511130001',
+                customer: 'John Doe',
+                date: '2025-11-13',
+                subtotal: 13000000,
                 discount: 1500000,
-                total: 11500000, 
+                total: 11500000,
                 status: 'Completed',
                 items: [
                     { product: 'Laptop Gaming', quantity: 1, price: 12000000, subtotal: 12000000 },
                     { product: 'Mouse Wireless', quantity: 2, price: 250000, subtotal: 500000 }
                 ]
             },
-            { 
-                id: 2, 
-                invoice: 'INV202511130002', 
-                customer: 'Jane Smith', 
-                date: '2025-11-13', 
-                subtotal: 5500000, 
+            {
+                id: 2,
+                invoice: 'INV202511130002',
+                customer: 'Jane Smith',
+                date: '2025-11-13',
+                subtotal: 5500000,
                 discount: 550000,
-                total: 4950000, 
+                total: 4950000,
                 status: 'Completed',
                 items: [
                     { product: 'Smartphone', quantity: 1, price: 5000000, subtotal: 5000000 },
                     { product: 'USB Cable', quantity: 2, price: 75000, subtotal: 150000 }
                 ]
             },
-            { 
-                id: 3, 
-                invoice: 'INV202511120001', 
-                customer: 'Robert Johnson', 
-                date: '2025-11-12', 
-                subtotal: 250000, 
+            {
+                id: 3,
+                invoice: 'INV202511120001',
+                customer: 'Robert Johnson',
+                date: '2025-11-12',
+                subtotal: 250000,
                 discount: 0,
-                total: 250000, 
+                total: 250000,
                 status: 'Completed',
                 items: [
                     { product: 'Mouse Wireless', quantity: 1, price: 250000, subtotal: 250000 }
                 ]
             },
-            { 
-                id: 4, 
-                invoice: 'INV202511110001', 
-                customer: 'Emily Davis', 
-                date: '2025-11-11', 
-                subtotal: 2800000, 
+            {
+                id: 4,
+                invoice: 'INV202511110001',
+                customer: 'Emily Davis',
+                date: '2025-11-11',
+                subtotal: 2800000,
                 discount: 280000,
-                total: 2520000, 
+                total: 2520000,
                 status: 'Completed',
                 items: [
                     { product: 'Monitor 24 inch', quantity: 1, price: 2000000, subtotal: 2000000 },
@@ -205,7 +206,7 @@
         // Initialize the transactions page
         document.addEventListener('DOMContentLoaded', function() {
             loadTransactions();
-            
+
             // Event listeners
             searchInput.addEventListener('input', filterTransactions);
         });
@@ -213,7 +214,7 @@
         // Load transactions function
         function loadTransactions() {
             transactionsList.innerHTML = '';
-            
+
             transactions.forEach(transaction => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -243,7 +244,7 @@
                 transactionDate.textContent = transaction.date;
                 transactionCustomer.textContent = transaction.customer;
                 transactionStatus.textContent = transaction.status;
-                
+
                 // Load items
                 transactionItems.innerHTML = '';
                 transaction.items.forEach(item => {
@@ -256,11 +257,11 @@
                     `;
                     transactionItems.appendChild(row);
                 });
-                
+
                 transactionSubtotal.textContent = `Rp ${formatRupiah(transaction.subtotal)}`;
                 transactionDiscount.textContent = `Rp ${formatRupiah(transaction.discount)}`;
                 transactionTotal.textContent = `Rp ${formatRupiah(transaction.total)}`;
-                
+
                 transactionModal.show();
             }
         }
@@ -277,14 +278,14 @@
         // Filter transactions based on search
         function filterTransactions() {
             const searchTerm = searchInput.value.toLowerCase();
-            const filteredTransactions = transactions.filter(transaction => 
-                transaction.invoice.toLowerCase().includes(searchTerm) || 
+            const filteredTransactions = transactions.filter(transaction =>
+                transaction.invoice.toLowerCase().includes(searchTerm) ||
                 transaction.customer.toLowerCase().includes(searchTerm) ||
                 transaction.total.toString().includes(searchTerm)
             );
-            
+
             transactionsList.innerHTML = '';
-            
+
             if (filteredTransactions.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `<td colspan="8" class="text-center">No transactions found</td>`;
