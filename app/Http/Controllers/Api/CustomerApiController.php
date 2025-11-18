@@ -12,7 +12,7 @@ class CustomerApiController extends Controller
      */
     public function index()
     {
-        return response()->json(Customer::paginate(10));
+        return response()->json(Customer::paginate());
     }
 
     /**

@@ -17,6 +17,26 @@
                     </div>
 
                     <div class="card-body">
+                        <!-- Search and Filter -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <input type="text" id="search-products" placeholder="Search products..." class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <select id="filter-category" class="form-select">
+                                    <option value="">All Categories</option>
+                                    <option value="electronics">Electronics</option>
+                                    <option value="accessories">Accessories</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-secondary w-100">
+                                    <i class="fas fa-filter"></i> Filter
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Products Table -->
                         <div class="table-responsive">
                             <table id="products-table" class="table table-hover">
                                 <thead class="table-light">
@@ -30,6 +50,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="products-list">
+                                    <!-- Data will be loaded via DataTables -->
                                 </tbody>
                             </table>
                         </div>
@@ -168,31 +189,31 @@
                 }
             },
             columns: [
-                {
+                { 
                     data: 'name',
                     defaultContent: 'N/A'
                 },
-                {
+                { 
                     data: 'code',
                     defaultContent: 'N/A'
                 },
-                {
+                { 
                     data: 'price',
                     render: function(data, type, row) {
                         if (type === 'display' || type === 'filter') {
-                            return 'Rp ' + parseInt(data || 0).toLocaleString('id-ID', {
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0
+                            return 'Rp ' + parseInt(data || 0).toLocaleString('id-ID', { 
+                                minimumFractionDigits: 0, 
+                                maximumFractionDigits: 0 
                             });
                         }
                         return data || 0; // Return the raw value for sorting
                     }
                 },
-                {
+                { 
                     data: 'stock',
                     defaultContent: '0'
                 },
-                {
+                { 
                     data: 'image_url',
                     render: function(data, type, row) {
                         if (type === 'display') {
@@ -205,7 +226,7 @@
                         return data || '';
                     }
                 },
-                {
+                { 
                     data: null,
                     orderable: false,
                     searchable: false,
@@ -392,10 +413,10 @@
         .then(result => {
             if (result.message && result.data) {
                 alert('Produk berhasil dibuat!');
-
+                
                 // Close the modal
                 bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
-
+                
                 // Reload the table data
                 table.ajax.reload();
             } else {
@@ -429,10 +450,10 @@
         .then(result => {
             if (result.message && result.data) {
                 alert('Produk berhasil diperbarui!');
-
+                
                 // Close the modal
                 bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
-
+                
                 // Reload the table data
                 table.ajax.reload();
             } else {
@@ -482,20 +503,109 @@
         });
     }
 
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + apiToken,
+                'Accept': 'application/json',
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+
+    function deleteProduct(id) {
+        fetch(`/api/products/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + apiToken,
+                'Accept': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('Produk berhasil dihapus!');
+
+                // Remove the row from the table
+                const row = document.getElementById(`product-row-${id}`);
+                if (row) {
+                    row.remove();
+                }
+            } else {
+                alert('Gagal menghapus produk: ' + (result.message || 'Kesalahan tidak diketahui'));
+            }
+        })
+        .catch(error => {
+            console.error('Kesalahan:', error);
+            alert('Terjadi kesalahan saat menghapus produk: ' + error.message);
+        });
+    }
+
+    // Handle form errors
+    function handleErrors(errors) {
+        clearErrors();
+
+        if (typeof errors === 'string') {
+            alert(errors);
+            return;
+        }
+
+        if (errors.name) {
+            nameError.textContent = errors.name[0];
+            productName.classList.add('is-invalid');
+        }
+
+        if (errors.code) {
+            codeError.textContent = errors.code[0];
+            productCode.classList.add('is-invalid');
+        }
+
+        if (errors.price) {
+            priceError.textContent = errors.price[0];
+            productPrice.classList.add('is-invalid');
+        }
+
+        if (errors.stock) {
+            stockError.textContent = errors.stock[0];
+            productStock.classList.add('is-invalid');
+        }
+        
+        if (errors.image) {
+            imageError.textContent = errors.image[0];
+            productImage.classList.add('is-invalid');
+        }
+    }
+
+    // Clear form errors
+    function clearErrors() {
+        nameError.textContent = '';
+        codeError.textContent = '';
+        priceError.textContent = '';
+        stockError.textContent = '';
+        imageError.textContent = ''; // Tambahkan untuk error gambar
+
+        productName.classList.remove('is-invalid');
+        productCode.classList.remove('is-invalid');
+        productPrice.classList.remove('is-invalid');
+        productStock.classList.remove('is-invalid');
+        productImage.classList.remove('is-invalid'); // Tambahkan untuk input gambar
+    }
+
     // Image preview functionality
-    document.getElementById('product-image').addEventListener('change', function(e) {
+    productImage.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
 
             reader.onload = function(event) {
-                document.getElementById('image-preview').src = event.target.result;
-                document.getElementById('image-preview-container').style.display = 'block';
+                imagePreview.src = event.target.result;
+                imagePreviewContainer.style.display = 'block';
             }
 
             reader.readAsDataURL(file);
         } else {
-            document.getElementById('image-preview-container').style.display = 'none';
+            imagePreviewContainer.style.display = 'none';
         }
     });
 </script>

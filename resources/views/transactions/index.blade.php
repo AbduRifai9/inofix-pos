@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+
 <div class="py-3">
     <div class="container-fluid">
         <div class="row">
@@ -12,31 +15,10 @@
                             New Transaction
                         </a>
                     </div>
-                    
-                    <div class="card-body">
-                        <!-- Filters -->
-                        <div class="row mb-4">
-                            <div class="col-md-3">
-                                <input type="text" id="search-transactions" placeholder="Search transactions..." class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                                <input type="date" id="date-from" class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                                <input type="date" id="date-to" class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                                <select id="filter-status" class="form-select">
-                                    <option value="">All Statuses</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="pending">Pending</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <!-- Transactions Table -->
+                    <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table id="transactions-table" class="table table-hover">
                                 <thead class="table-light">
                                     <tr>
                                         <th scope="col">Invoice</th>
@@ -45,281 +27,224 @@
                                         <th scope="col">Subtotal</th>
                                         <th scope="col">Discount</th>
                                         <th scope="col">Total</th>
-                                        <th scope="col">Status</th>
                                         <th scope="col">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="transactions-list">
-                                    <!-- Transactions will be loaded here via JavaScript -->
                                 </tbody>
                             </table>
                         </div>
-
-                        <!-- Pagination -->
-                        <nav aria-label="Transactions pagination">
-                            <ul class="pagination justify-content-center" id="pagination">
-                                <!-- Pagination links will be loaded here -->
-                            </ul>
-                        </nav>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Transaction Details Modal -->
-    <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modal-title">Transaction Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-4">
-                        <h5>Transaction Information</h5>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p class="mb-1"><strong>Invoice:</strong> <span id="transaction-invoice"></span></p>
-                                <p class="mb-1"><strong>Date:</strong> <span id="transaction-date"></span></p>
-                            </div>
-                            <div class="col-md-6">
-                                <p class="mb-1"><strong>Customer:</strong> <span id="transaction-customer"></span></p>
-                                <p class="mb-1"><strong>Status:</strong> <span id="transaction-status"></span></p>
-                            </div>
-                        </div>
+<!-- View Transaction Modal -->
+<div class="modal fade" id="viewTransactionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewTransactionModalLabel">Transaction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Invoice:</strong> <span id="view-transaction-invoice"></span></p>
+                        <p><strong>Customer:</strong> <span id="view-transaction-customer"></span></p>
+                        <p><strong>Date:</strong> <span id="view-transaction-date"></span></p>
                     </div>
-
-                    <div class="mb-4">
-                        <h5>Items</h5>
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Product</th>
-                                        <th>Quantity</th>
-                                        <th>Price</th>
-                                        <th>Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="transaction-items">
-                                    <!-- Items will be loaded here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="row border-top pt-3">
-                        <div class="col-md-6">
-                            <p><strong>Subtotal:</strong> <span id="transaction-subtotal"></span></p>
-                        </div>
-                        <div class="col-md-6">
-                            <p class="text-danger"><strong>Discount:</strong> <span id="transaction-discount"></span></p>
-                        </div>
-                    </div>
-                    <div class="row border-top pt-2">
-                        <div class="col-md-12">
-                            <p class="h5"><strong>Total:</strong> <span id="transaction-total"></span></p>
-                        </div>
+                    <div class="col-md-6">
+                        <p><strong>Subtotal:</strong> <span id="view-transaction-subtotal"></span></p>
+                        <p><strong>Discount:</strong> <span id="view-transaction-discount"></span></p>
+                        <p><strong>Total:</strong> <span id="view-transaction-total"></span></p>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+                <h6>Items:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-items">
+                        </tbody>
+                    </table>
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // Sample transactions data - in real app, this would come from API
-        const transactions = [
-            {
-                id: 1,
-                invoice: 'INV202511130001',
-                customer: 'John Doe',
-                date: '2025-11-13',
-                subtotal: 13000000,
-                discount: 1500000,
-                total: 11500000,
-                status: 'Completed',
-                items: [
-                    { product: 'Laptop Gaming', quantity: 1, price: 12000000, subtotal: 12000000 },
-                    { product: 'Mouse Wireless', quantity: 2, price: 250000, subtotal: 500000 }
-                ]
+<!-- jQuery (required for DataTables) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- Hidden input to store the API token -->
+<input type="hidden" id="api-token" value="{{ $api_token }}">
+
+<script>
+    // Get the API token from the hidden input
+    const apiToken = document.getElementById('api-token').value;
+
+    // Initialize DataTable
+    let table;
+    $(document).ready(function() {
+        table = $('#transactions-table').DataTable({
+            processing: true,
+            serverSide: false,
+            searching: true,
+            ordering: true,
+            paging: true,
+            pageLength: 10,
+            lengthChange: true,
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json' // Indonesian language
             },
-            {
-                id: 2,
-                invoice: 'INV202511130002',
-                customer: 'Jane Smith',
-                date: '2025-11-13',
-                subtotal: 5500000,
-                discount: 550000,
-                total: 4950000,
-                status: 'Completed',
-                items: [
-                    { product: 'Smartphone', quantity: 1, price: 5000000, subtotal: 5000000 },
-                    { product: 'USB Cable', quantity: 2, price: 75000, subtotal: 150000 }
-                ]
+            ajax: {
+                url: '/api/transactions',
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + apiToken,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                dataSrc: function(json) {
+                    return json.data || json; // Handle both paginated and non-paginated responses
+                }
             },
-            {
-                id: 3,
-                invoice: 'INV202511120001',
-                customer: 'Robert Johnson',
-                date: '2025-11-12',
-                subtotal: 250000,
-                discount: 0,
-                total: 250000,
-                status: 'Completed',
-                items: [
-                    { product: 'Mouse Wireless', quantity: 1, price: 250000, subtotal: 250000 }
-                ]
-            },
-            {
-                id: 4,
-                invoice: 'INV202511110001',
-                customer: 'Emily Davis',
-                date: '2025-11-11',
-                subtotal: 2800000,
-                discount: 280000,
-                total: 2520000,
-                status: 'Completed',
-                items: [
-                    { product: 'Monitor 24 inch', quantity: 1, price: 2000000, subtotal: 2000000 },
-                    { product: 'Keyboard Mechanical', quantity: 1, price: 800000, subtotal: 800000 }
-                ]
-            }
-        ];
-
-        // DOM Elements
-        const transactionsList = document.getElementById('transactions-list');
-        const transactionModal = new bootstrap.Modal(document.getElementById('transactionModal'));
-        const transactionInvoice = document.getElementById('transaction-invoice');
-        const transactionDate = document.getElementById('transaction-date');
-        const transactionCustomer = document.getElementById('transaction-customer');
-        const transactionStatus = document.getElementById('transaction-status');
-        const transactionItems = document.getElementById('transaction-items');
-        const transactionSubtotal = document.getElementById('transaction-subtotal');
-        const transactionDiscount = document.getElementById('transaction-discount');
-        const transactionTotal = document.getElementById('transaction-total');
-        const searchInput = document.getElementById('search-transactions');
-
-        // Initialize the transactions page
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTransactions();
-
-            // Event listeners
-            searchInput.addEventListener('input', filterTransactions);
+            columns: [
+                {
+                    data: 'invoice',
+                    defaultContent: 'N/A'
+                },
+                {
+                    data: 'customer',
+                    render: function(data, type, row) {
+                        return data && data.name ? data.name : 'Walk-in Customer';
+                    }
+                },
+                {
+                    data: 'created_at',
+                    render: function(data, type, row) {
+                        if (type === 'display' || type === 'filter') {
+                            if (data) {
+                                const date = new Date(data);
+                                return date.toLocaleDateString('id-ID', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                });
+                            }
+                            return 'N/A';
+                        }
+                        return data; // Return raw data for sorting
+                    }
+                },
+                {
+                    data: 'subtotal',
+                    render: function(data, type, row) {
+                        if (type === 'display' || type === 'filter') {
+                            return 'Rp ' + parseInt(data || 0).toLocaleString('id-ID', {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0
+                            });
+                        }
+                        return data || 0; // Return the raw value for sorting
+                    }
+                },
+                {
+                    data: 'discount',
+                    render: function(data, type, row) {
+                        if (type === 'display' || type === 'filter') {
+                            return 'Rp ' + parseInt(data || 0).toLocaleString('id-ID', {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0
+                            });
+                        }
+                        return data || 0; // Return the raw value for sorting
+                    }
+                },
+                {
+                    data: 'total',
+                    render: function(data, type, row) {
+                        if (type === 'display' || type === 'filter') {
+                            return 'Rp ' + parseInt(data || 0).toLocaleString('id-ID', {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0
+                            });
+                        }
+                        return data || 0; // Return the raw value for sorting
+                    }
+                },
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        return `
+                            <button class="btn btn-sm btn-outline-info view-transaction"
+                                    data-transaction="${JSON.stringify(row).replace(/"/g, '&quot;')}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#viewTransactionModal">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        `;
+                    }
+                }
+            ]
         });
 
-        // Load transactions function
-        function loadTransactions() {
-            transactionsList.innerHTML = '';
+        // View transaction event (delegated event)
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.view-transaction')) {
+                const button = e.target.closest('.view-transaction');
+                const transaction = JSON.parse(button.getAttribute('data-transaction'));
 
-            transactions.forEach(transaction => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${transaction.invoice}</td>
-                    <td>${transaction.customer}</td>
-                    <td>${transaction.date}</td>
-                    <td>Rp ${formatRupiah(transaction.subtotal)}</td>
-                    <td class="text-danger">Rp ${formatRupiah(transaction.discount)}</td>
-                    <td class="fw-bold">Rp ${formatRupiah(transaction.total)}</td>
-                    <td>
-                        <span class="badge bg-success">${transaction.status}</span>
-                    </td>
-                    <td>
-                        <button onclick="viewTransaction(${transaction.id})" class="btn btn-sm btn-outline-primary me-1">View</button>
-                        <button onclick="deleteTransaction(${transaction.id})" class="btn btn-sm btn-outline-danger">Delete</button>
-                    </td>
-                `;
-                transactionsList.appendChild(row);
-            });
-        }
+                document.getElementById('view-transaction-invoice').textContent = transaction.invoice;
+                document.getElementById('view-transaction-customer').textContent = transaction.customer?.name || 'Walk-in Customer';
+                document.getElementById('view-transaction-date').textContent = new Date(transaction.created_at).toLocaleString();
+                document.getElementById('view-transaction-subtotal').textContent = 'Rp ' + (transaction.subtotal || 0).toLocaleString('id-ID');
+                document.getElementById('view-transaction-discount').textContent = 'Rp ' + (transaction.discount || 0).toLocaleString('id-ID');
+                document.getElementById('view-transaction-total').textContent = 'Rp ' + (transaction.total || 0).toLocaleString('id-ID');
 
-        // View transaction details
-        function viewTransaction(id) {
-            const transaction = transactions.find(t => t.id === id);
-            if (transaction) {
-                transactionInvoice.textContent = transaction.invoice;
-                transactionDate.textContent = transaction.date;
-                transactionCustomer.textContent = transaction.customer;
-                transactionStatus.textContent = transaction.status;
+                // Populate transaction items
+                const itemsContainer = document.getElementById('transaction-items');
+                itemsContainer.innerHTML = '';
 
-                // Load items
-                transactionItems.innerHTML = '';
-                transaction.items.forEach(item => {
+                if (transaction.items && transaction.items.length > 0) {
+                    transaction.items.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${item.product?.name || item.product_name || 'Unknown Product'}</td>
+                            <td>Rp ${item.price.toLocaleString('id-ID')}</td>
+                            <td>${item.quantity}</td>
+                            <td>Rp ${(item.subtotal || item.price * item.quantity).toLocaleString('id-ID')}</td>
+                        `;
+                        itemsContainer.appendChild(row);
+                    });
+                } else {
                     const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${item.product}</td>
-                        <td>${item.quantity}</td>
-                        <td>Rp ${formatRupiah(item.price)}</td>
-                        <td>Rp ${formatRupiah(item.subtotal)}</td>
-                    `;
-                    transactionItems.appendChild(row);
-                });
-
-                transactionSubtotal.textContent = `Rp ${formatRupiah(transaction.subtotal)}`;
-                transactionDiscount.textContent = `Rp ${formatRupiah(transaction.discount)}`;
-                transactionTotal.textContent = `Rp ${formatRupiah(transaction.total)}`;
-
-                transactionModal.show();
+                    row.innerHTML = '<td colspan="4" class="text-center">No items found</td>';
+                    itemsContainer.appendChild(row);
+                }
             }
-        }
-
-        // Delete transaction
-        function deleteTransaction(id) {
-            if (confirm('Are you sure you want to delete this transaction?')) {
-                // In a real app, you would call the API to delete
-                console.log('Deleting transaction:', id);
-                loadTransactions(); // Refresh the list
-            }
-        }
-
-        // Filter transactions based on search
-        function filterTransactions() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const filteredTransactions = transactions.filter(transaction =>
-                transaction.invoice.toLowerCase().includes(searchTerm) ||
-                transaction.customer.toLowerCase().includes(searchTerm) ||
-                transaction.total.toString().includes(searchTerm)
-            );
-
-            transactionsList.innerHTML = '';
-
-            if (filteredTransactions.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="8" class="text-center">No transactions found</td>`;
-                transactionsList.appendChild(row);
-            } else {
-                filteredTransactions.forEach(transaction => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${transaction.invoice}</td>
-                        <td>${transaction.customer}</td>
-                        <td>${transaction.date}</td>
-                        <td>Rp ${formatRupiah(transaction.subtotal)}</td>
-                        <td class="text-danger">Rp ${formatRupiah(transaction.discount)}</td>
-                        <td class="fw-bold">Rp ${formatRupiah(transaction.total)}</td>
-                        <td>
-                            <span class="badge bg-success">${transaction.status}</span>
-                        </td>
-                        <td>
-                            <button onclick="viewTransaction(${transaction.id})" class="btn btn-sm btn-outline-primary me-1">View</button>
-                            <button onclick="deleteTransaction(${transaction.id})" class="btn btn-sm btn-outline-danger">Delete</button>
-                        </td>
-                    `;
-                    transactionsList.appendChild(row);
-                });
-            }
-        }
-
-        // Format currency function
-        function formatRupiah(angka) {
-            const reverse = angka.toString().split('').reverse().join('');
-            const ribuan = reverse.match(/\d{1,3}/g);
-            const hasil = ribuan.join('.').split('').reverse().join('');
-            return hasil;
-        }
-    </script>
-</div>
+        });
+    });
+</script>
 @endsection

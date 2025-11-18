@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+
 <div class="py-3">
     <div class="container-fluid">
         <div class="row">
@@ -8,22 +11,14 @@
                 <div class="card shadow-sm">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <h2 class="h5 mb-0">Customers Management</h2>
-                        <button id="add-customer-btn" class="btn btn-primary">
-                            Add Customer
+                        <button id="add-customer-btn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal">
+                            Tambah Pelanggan
                         </button>
                     </div>
-                    
-                    <div class="card-body">
-                        <!-- Search -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <input type="text" id="search-customers" placeholder="Search customers..." class="form-control">
-                            </div>
-                        </div>
 
-                        <!-- Customers Table -->
+                    <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table id="customers-table" class="table table-hover">
                                 <thead class="table-light">
                                     <tr>
                                         <th scope="col">Name</th>
@@ -33,194 +28,394 @@
                                     </tr>
                                 </thead>
                                 <tbody id="customers-list">
-                                    <!-- Customers will be loaded here via JavaScript -->
+                                    <!-- Data will be loaded via DataTables -->
                                 </tbody>
                             </table>
                         </div>
-
-                        <!-- Pagination -->
-                        <nav aria-label="Customers pagination">
-                            <ul class="pagination justify-content-center" id="pagination">
-                                <!-- Pagination links will be loaded here -->
-                            </ul>
-                        </nav>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Add/Edit Customer Modal -->
-    <div class="modal fade" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modal-title">Add New Customer</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+<!-- Customer Modal -->
+<div class="modal fade" id="customerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerModalLabel">Tambah Pelanggan Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="customerForm">
+                @csrf
                 <div class="modal-body">
-                    <form id="customer-form">
-                        <input type="hidden" id="customer-id">
-                        <div class="mb-3">
-                            <label for="customer-name" class="form-label">Name</label>
-                            <input type="text" class="form-control" id="customer-name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="customer-phone" class="form-label">Phone</label>
-                            <input type="text" class="form-control" id="customer-phone" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="customer-email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="customer-email">
-                        </div>
-                    </form>
+                    <input type="hidden" id="customer-id" name="id">
+                    <div class="mb-3">
+                        <label for="customer-name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="customer-name" name="name" required>
+                        <div class="invalid-feedback" id="name-error"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customer-phone" class="form-label">Phone</label>
+                        <input type="text" class="form-control" id="customer-phone" name="phone" required>
+                        <div class="invalid-feedback" id="phone-error"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customer-email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="customer-email" name="email">
+                        <div class="invalid-feedback" id="email-error"></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="customer-form" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="save-customer">Simpan Pelanggan</button>
                 </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Customer Modal -->
+<div class="modal fade" id="viewCustomerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewCustomerModalLabel">Customer Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>ID:</strong> <span id="view-customer-id"></span></p>
+                        <p><strong>Name:</strong> <span id="view-customer-name"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Phone:</strong> <span id="view-customer-phone"></span></p>
+                        <p><strong>Email:</strong> <span id="view-customer-email"></span></p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <p><strong>Created At:</strong> <span id="view-customer-created-at"></span></p>
+                        <p><strong>Updated At:</strong> <span id="view-customer-updated-at"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // Sample customers data - in real app, this would come from API
-        let customers = [
-            { id: 1, name: 'John Doe', phone: '081234567890', email: 'john@example.com' },
-            { id: 2, name: 'Jane Smith', phone: '082345678901', email: 'jane@example.com' },
-            { id: 3, name: 'Robert Johnson', phone: '083456789012', email: 'robert@example.com' },
-            { id: 4, name: 'Emily Davis', phone: '084567890123', email: 'emily@example.com' },
-            { id: 5, name: 'Michael Wilson', phone: '085678901234', email: 'michael@example.com' }
-        ];
+<!-- jQuery (required for DataTables) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
-        // DOM Elements
-        const customersList = document.getElementById('customers-list');
-        const addCustomerBtn = document.getElementById('add-customer-btn');
-        const customerModal = new bootstrap.Modal(document.getElementById('customerModal'));
-        const customerForm = document.getElementById('customer-form');
+<!-- Hidden input to store the API token -->
+<input type="hidden" id="api-token" value="{{ $api_token }}">
+
+<script>
+    // Get the API token from the hidden input
+    const apiToken = document.getElementById('api-token').value;
+
+    // Initialize DataTable
+    let table;
+    $(document).ready(function() {
+        table = $('#customers-table').DataTable({
+            processing: true,
+            serverSide: false,
+            searching: true,
+            ordering: true,
+            paging: true,
+            pageLength: 10,
+            lengthChange: true,
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json' // Indonesian language
+            },
+            ajax: {
+                url: '/api/customers',
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + apiToken,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                dataSrc: function(json) {
+                    return json.data || json; // Handle both paginated and non-paginated responses
+                }
+            },
+            columns: [
+                {
+                    data: 'name',
+                    defaultContent: 'N/A'
+                },
+                {
+                    data: 'phone',
+                    defaultContent: 'N/A'
+                },
+                {
+                    data: 'email',
+                    defaultContent: 'N/A'
+                },
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        return `
+                            <button class="btn btn-sm btn-outline-info view-customer"
+                                    data-customer="${JSON.stringify(row).replace(/"/g, '&quot;')}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#viewCustomerModal">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary edit-customer"
+                                    data-customer="${JSON.stringify(row).replace(/"/g, '&quot;')}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#customerModal">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-customer"
+                                    data-id="${row.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        `;
+                    }
+                }
+            ]
+        });
+
+        // Add customer button event
+        document.getElementById('add-customer-btn').addEventListener('click', function() {
+            // Reset form
+            document.getElementById('customerForm').reset();
+            document.getElementById('customerModalLabel').textContent = 'Tambah Pelanggan Baru';
+            document.getElementById('save-customer').textContent = 'Simpan Pelanggan';
+            document.getElementById('customer-id').value = '';
+
+            // Clear errors
+            clearCustomerErrors();
+        });
+
+        // Edit customer event (delegated event)
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.edit-customer')) {
+                const button = e.target.closest('.edit-customer');
+                const customer = JSON.parse(button.getAttribute('data-customer'));
+
+                document.getElementById('customerModalLabel').textContent = 'Edit Pelanggan';
+                document.getElementById('save-customer').textContent = 'Perbarui Pelanggan';
+
+                document.getElementById('customer-id').value = customer.id;
+                document.getElementById('customer-name').value = customer.name;
+                document.getElementById('customer-phone').value = customer.phone;
+                document.getElementById('customer-email').value = customer.email || '';
+
+                // Clear errors
+                clearCustomerErrors();
+            }
+        });
+
+        // View customer event (delegated event)
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.view-customer')) {
+                const button = e.target.closest('.view-customer');
+                const customer = JSON.parse(button.getAttribute('data-customer'));
+
+                document.getElementById('view-customer-id').textContent = customer.id;
+                document.getElementById('view-customer-name').textContent = customer.name;
+                document.getElementById('view-customer-phone').textContent = customer.phone;
+                document.getElementById('view-customer-email').textContent = customer.email || 'N/A';
+                document.getElementById('view-customer-created-at').textContent = new Date(customer.created_at).toLocaleString();
+                document.getElementById('view-customer-updated-at').textContent = new Date(customer.updated_at).toLocaleString();
+            }
+        });
+
+        // Delete customer event (delegated event)
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.delete-customer')) {
+                const button = e.target.closest('.delete-customer');
+                const customerId = button.getAttribute('data-id');
+
+                if (confirm('Apakah Anda yakin ingin menghapus pelanggan ini?')) {
+                    deleteCustomer(customerId);
+                }
+            }
+        });
+    });
+
+    // Form submission
+    document.getElementById('customerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Clear previous errors
+        clearCustomerErrors();
+
         const customerId = document.getElementById('customer-id');
         const customerName = document.getElementById('customer-name');
         const customerPhone = document.getElementById('customer-phone');
         const customerEmail = document.getElementById('customer-email');
-        const searchInput = document.getElementById('search-customers');
-        const modalTitle = document.getElementById('modal-title');
 
-        // Initialize the customers page
-        document.addEventListener('DOMContentLoaded', function() {
-            loadCustomers();
+        const formData = {
+            name: customerName.value,
+            phone: customerPhone.value,
+            email: customerEmail.value || null
+        };
 
-            // Event listeners
-            addCustomerBtn.addEventListener('click', openAddCustomerModal);
-            customerForm.addEventListener('submit', saveCustomer);
-            searchInput.addEventListener('input', filterCustomers);
+        const saveCustomerBtn = document.getElementById('save-customer');
+
+        if (customerId.value) {
+            // Update existing customer
+            updateCustomer(customerId.value, formData, saveCustomerBtn);
+        } else {
+            // Create new customer
+            createCustomer(formData, saveCustomerBtn);
+        }
+    });
+
+    // Create customer function
+    function createCustomer(data, saveCustomerBtn) {
+        saveCustomerBtn.disabled = true;
+        saveCustomerBtn.textContent = 'Menyimpan...';
+
+        fetch('/api/customers', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + apiToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.message && result.data) {
+                alert('Pelanggan berhasil dibuat!');
+
+                // Close the modal
+                const modalElement = document.getElementById('customerModal');
+                const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                modal.hide();
+
+                // Reload the table data
+                table.ajax.reload();
+            } else {
+                handleCustomerErrors(result.errors || result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Kesalahan:', error);
+            alert('Terjadi kesalahan saat membuat pelanggan: ' + error.message);
+        })
+        .finally(() => {
+            saveCustomerBtn.disabled = false;
+            saveCustomerBtn.textContent = 'Simpan Pelanggan';
+        });
+    }
+
+    // Update customer function
+    function updateCustomer(id, data, saveCustomerBtn) {
+        saveCustomerBtn.disabled = true;
+        saveCustomerBtn.textContent = 'Memperbarui...';
+
+        fetch(`/api/customers/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + apiToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.message && result.data) {
+                alert('Pelanggan berhasil diperbarui!');
+
+                // Close the modal
+                const modalElement = document.getElementById('customerModal');
+                const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                modal.hide();
+
+                // Reload the table data
+                table.ajax.reload();
+            } else {
+                handleCustomerErrors(result.errors || result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Kesalahan:', error);
+            alert('Terjadi kesalahan saat memperbarui pelanggan: ' + error.message);
+        })
+        .finally(() => {
+            saveCustomerBtn.disabled = false;
+            saveCustomerBtn.textContent = 'Perbarui Pelanggan';
+        });
+    }
+
+    // Delete customer function
+    function deleteCustomer(id) {
+        fetch(`/api/customers/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + apiToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.message) {
+                alert('Pelanggan berhasil dihapus!');
+
+                // Reload the table data
+                table.ajax.reload();
+            } else {
+                alert('Terjadi kesalahan saat menghapus pelanggan: ' + (result.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Kesalahan:', error);
+            alert('Terjadi kesalahan saat menghapus pelanggan: ' + error.message);
+        });
+    }
+
+    // Function to handle form errors
+    function handleCustomerErrors(errors) {
+        // Clear previous errors
+        clearCustomerErrors();
+
+        if (typeof errors === 'string') {
+            alert('Error: ' + errors);
+            return;
+        }
+
+        // Display field-specific errors
+        Object.keys(errors).forEach(field => {
+            const errorElement = document.getElementById(field + '-error');
+            if (errorElement) {
+                errorElement.textContent = errors[field][0];
+                errorElement.parentElement.querySelector('input, select, textarea').classList.add('is-invalid');
+            }
+        });
+    }
+
+    // Function to clear form errors
+    function clearCustomerErrors() {
+        const errorElements = document.querySelectorAll('.invalid-feedback');
+        errorElements.forEach(element => {
+            element.textContent = '';
         });
 
-        // Load customers function
-        function loadCustomers() {
-            customersList.innerHTML = '';
-
-            customers.forEach(customer => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${customer.name}</td>
-                    <td>${customer.phone}</td>
-                    <td>${customer.email}</td>
-                    <td>
-                        <button onclick="editCustomer(${customer.id})" class="btn btn-sm btn-outline-primary me-1">Edit</button>
-                        <button onclick="deleteCustomer(${customer.id})" class="btn btn-sm btn-outline-danger">Delete</button>
-                    </td>
-                `;
-                customersList.appendChild(row);
-            });
-        }
-
-        // Open add customer modal
-        function openAddCustomerModal() {
-            modalTitle.textContent = 'Add New Customer';
-            customerId.value = '';
-            customerName.value = '';
-            customerPhone.value = '';
-            customerEmail.value = '';
-            customerModal.show();
-        }
-
-        // Edit customer
-        function editCustomer(id) {
-            const customer = customers.find(c => c.id === id);
-            if (customer) {
-                modalTitle.textContent = 'Edit Customer';
-                customerId.value = customer.id;
-                customerName.value = customer.name;
-                customerPhone.value = customer.phone;
-                customerEmail.value = customer.email;
-                customerModal.show();
-            }
-        }
-
-        // Delete customer
-        function deleteCustomer(id) {
-            if (confirm('Are you sure you want to delete this customer?')) {
-                customers = customers.filter(c => c.id !== id);
-                loadCustomers();
-            }
-        }
-
-        // Save customer (add or update)
-        function saveCustomer(e) {
-            e.preventDefault();
-
-            const id = customerId.value ? parseInt(customerId.value) : null;
-            const name = customerName.value;
-            const phone = customerPhone.value;
-            const email = customerEmail.value;
-
-            if (id) {
-                // Update existing customer
-                const index = customers.findIndex(c => c.id === id);
-                if (index !== -1) {
-                    customers[index] = { id, name, phone, email };
-                }
-            } else {
-                // Add new customer
-                const newId = customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1;
-                customers.push({ id: newId, name, phone, email });
-            }
-
-            loadCustomers();
-            customerModal.hide();
-        }
-
-        // Filter customers based on search
-        function filterCustomers() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const filteredCustomers = customers.filter(customer =>
-                customer.name.toLowerCase().includes(searchTerm) ||
-                customer.phone.toLowerCase().includes(searchTerm) ||
-                customer.email.toLowerCase().includes(searchTerm)
-            );
-
-            customersList.innerHTML = '';
-
-            if (filteredCustomers.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="4" class="text-center">No customers found</td>`;
-                customersList.appendChild(row);
-            } else {
-                filteredCustomers.forEach(customer => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${customer.name}</td>
-                        <td>${customer.phone}</td>
-                        <td>${customer.email}</td>
-                        <td>
-                            <button onclick="editCustomer(${customer.id})" class="btn btn-sm btn-outline-primary me-1">Edit</button>
-                            <button onclick="deleteCustomer(${customer.id})" class="btn btn-sm btn-outline-danger">Delete</button>
-                        </td>
-                    `;
-                    customersList.appendChild(row);
-                });
-            }
-        }
-    </script>
-</div>
+        const invalidInputs = document.querySelectorAll('.is-invalid');
+        invalidInputs.forEach(input => {
+            input.classList.remove('is-invalid');
+        });
+    }
+</script>
 @endsection

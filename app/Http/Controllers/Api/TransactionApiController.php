@@ -14,7 +14,7 @@ class TransactionApiController extends Controller
     public function index()
     {
         return response()->json(
-            Transaction::with(['customer', 'items.product'])->latest()->paginate(10)
+            Transaction::with(['customer', 'items.product'])->latest()->paginate()
         );
     }
 
