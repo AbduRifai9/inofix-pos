@@ -38,7 +38,7 @@ Berikut adalah skema database utama yang digunakan pada aplikasi POS sederhana i
 | 6 | transaction_items | Menyimpan detail barang yang dibeli dalam satu transaksi. |
 
 ## Diagram Database
-(https://github.com/AbduRifai9/inofix-pos/blob/master/inofix-pos.png)
+![Diagram Database](https://github.com/AbduRifai9/inofix-pos/blob/master/inofix-pos.png)
 
 ## Skema Diskon
 
