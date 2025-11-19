@@ -7,9 +7,6 @@
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center">
                     <h2 class="h4">POS System</h2>
-                    <button id="new-transaction" class="btn btn-primary">
-                        New Transaction
-                    </button>
                 </div>
             </div>
         </div>

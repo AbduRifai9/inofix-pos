@@ -11,7 +11,7 @@
                 <div class="card shadow-sm">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <h2 class="h5 mb-0">Transactions Management</h2>
-                        <a href="/pos" class="btn btn-success">
+                        <a href="/pos" class="btn btn-primary">
                             New Transaction
                         </a>
                     </div>
