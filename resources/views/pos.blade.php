@@ -7,9 +7,6 @@
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center">
                         <h2 class="h4">POS System</h2>
-                        <button id="new-transaction" class="btn btn-primary">
-                            New Transaction
-                        </button>
                     </div>
                 </div>
             </div>
@@ -399,10 +396,10 @@
         function showNotification(message, type = 'success') {
             const notificationArea = document.getElementById('notification-area');
             const notificationMessage = document.getElementById('notification-message');
-            
+
             notificationMessage.textContent = message;
             notificationArea.className = `alert alert-${type} d-block`;
-            
+
             // Auto hide the notification after 3 seconds
             setTimeout(() => {
                 notificationArea.classList.add('d-none');
@@ -464,14 +461,14 @@
                 .then(data => {
                     if (data.message) {
                         console.log('Respon transaksi:', data);
-                        
+
                         // Show success notification
                         showNotification('Transaksi berhasil diselesaikan!', 'success');
 
                         // Reset cart only after successful response
                         cart = [];
                         updateCartDisplay();
-                        
+
                         // Reset customer selection
                         document.getElementById('customer-search').value = '';
                         document.getElementById('customer-id').value = '';
@@ -574,7 +571,7 @@
             customerSearch.value = customer.name; // Display customer name in search box
             customerId.value = customer.id; // Store customer ID in hidden input
             customerDropdown.style.display = 'none'; // Hide the dropdown
-            
+
             // Show confirmation of selected customer
             showNotification('Pelanggan "' + customer.name + '" telah dipilih', 'info');
         }
@@ -651,7 +648,7 @@
                                 document.getElementById('add-customer-form').reset();
                                 return;
                             }
-                            
+
                             // Add the new customer to our local array
                             allCustomers.push(newCustomer);
 
@@ -667,7 +664,7 @@
 
                             // Reset the form
                             document.getElementById('add-customer-form').reset();
-                            
+
                             // Show success notification
                             showNotification('Pelanggan "' + newCustomer.name + '" berhasil ditambahkan!', 'success');
                         } else {
