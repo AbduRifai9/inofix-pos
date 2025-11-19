@@ -42,9 +42,9 @@ Berikut adalah skema database utama yang digunakan pada aplikasi POS sederhana i
 
 ## Skema Diskon
 
-Jika total belanja ≥ Rp 500.000 → diskon 10%
-Jika total belanja ≥ Rp 1.000.000 → diskon 15%
-Diskon hanya berlaku jika memenuhi syarat & dihitung otomatis oleh sistem.
+- Jika total belanja ≥ Rp 500.000 → diskon 10%
+- Jika total belanja ≥ Rp 1.000.000 → diskon 15%
+- Diskon hanya berlaku jika memenuhi syarat & dihitung otomatis oleh sistem.
 
 ## Panduan Instalasi Project
 
